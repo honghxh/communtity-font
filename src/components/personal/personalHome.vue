@@ -20,6 +20,7 @@
       <span class="information"> 注册时间:{{ date(personal.createTime) }}</span>
       <div class="bottom card-header">
         <span class="information">获得了{{ personal.likeCount }}个赞</span>
+        
         <el-button
           type="text"
           class="information"
@@ -73,7 +74,6 @@
         <el-tab-pane
           label="我发布的帖子"
           name="first"
-          @click.native="getUserPost(this.id)"
         >
           <el-table :data="userPost">
             <el-table-column
@@ -82,7 +82,7 @@
               </template>
             </el-table-column>
             <el-table-column prop="title"> </el-table-column>
-            <el-table-column prop="content"> </el-table-column>
+            <el-table-column prop="content" :formatter="stateFormat"> </el-table-column>
             <el-table-column
               ><template slot-scope="scope">
                 <i class="el-icon-time"></i>
@@ -101,7 +101,7 @@
               </template>
             </el-table-column>
             <el-table-column prop="username"> </el-table-column>
-            <el-table-column prop="content"> </el-table-column>
+            <el-table-column prop="content" :formatter="stateFormat"> </el-table-column>
             <el-table-column
               ><template slot-scope="scope">
                 <i class="el-icon-time"></i>
@@ -110,9 +110,26 @@
                 }}</span>
               </template>
             </el-table-column>
-          </el-table></el-tab-pane
+          </el-table>
+          <div style="display: inline-block">
+      <el-pagination
+        background="green"
+        style="padding-top: 15px"
+        @size-change="findSizeChange"
+        @current-change="findPage"
+        :current-page.sync="pageNum"
+        :page-sizes="[5, 10, 15, 20]"
+        :page-size="size"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        v-if="total!=0"
+      >
+      </el-pagination>
+    </div>
+          </el-tab-pane
         >
-        <el-tab-pane label="我关注的帖子" name="third">
+        <el-tab-pane label="我关注的帖子" name="third"
+          >
           我关注的帖子
           <el-table :data="followPost">
             <el-table-column
@@ -121,7 +138,7 @@
               </template>
             </el-table-column>
             <el-table-column prop="title"> </el-table-column>
-            <el-table-column prop="content"> </el-table-column>
+            <el-table-column prop="content" :formatter="stateFormat"> </el-table-column>
             <el-table-column
               ><template slot-scope="scope">
                 <i class="el-icon-time"></i>
@@ -137,7 +154,7 @@
     </el-card>
 
     <el-dialog
-      title="我关注的人"
+      title="关注我的人"
       width="40%"
       :modal-append-to-body="false"
       :append-to-body="true"
@@ -160,13 +177,18 @@
           </template>
         </el-table-column>
         <el-table-column align="right">
-          <el-button class="el-icon-star-on" circle> </el-button>
+          <el-tooltip
+          content="取消关注"
+          placement="bottom"
+          effect="light">
+          <el-button class="el-icon-star-on" circle @click="unFollow(scope.row.id)"> </el-button>
+          </el-tooltip>
         </el-table-column>
       </el-table>
     </el-dialog>
 
     <el-dialog
-      title="关注我的人"
+      title="我关注的人"
       width="40%"
       :modal-append-to-body="false"
       :append-to-body="true"
@@ -188,7 +210,12 @@
           </template>
         </el-table-column>
         <el-table-column align="right">
-          <el-button class="el-icon-star-on" circle> </el-button>
+          <el-tooltip
+          content="关注他"
+          placement="bottom"
+          effect="light">
+          <el-button class="el-icon-star-on" circle @click="toFollow(scope.row.id)"></el-button>
+          </el-tooltip>
         </el-table-column>
       </el-table>
     </el-dialog>
@@ -202,6 +229,7 @@ import {
   getFollower,
   follow,
   unfollow,
+  getusercomment
 } from "@/api/personal";
 import { dateFormat } from "@/utils/date";
 export default {
@@ -215,6 +243,9 @@ export default {
         "https://cube.elemecdn.com/6/94/4d3ea53c084bad6931a56d5158a48jpeg.jpeg",
         "https://fuss10.elemecdn.com/0/6f/e35ff375812e6b0020b6b4e8f9583jpeg.jpeg",
       ],
+      pageNum: 0,
+      total: 0,
+      size: 5,
       personal: {
         id: "",
         username: "",
@@ -275,6 +306,7 @@ export default {
       follow(this.followData).then((res) => {
         if (res.data.code == 1) {
           console.log(res.data);
+          this.getPersonal(this.id);
         } else {
           console.log(res.data);
         }
@@ -287,6 +319,7 @@ export default {
       unfollow(this.followData).then((res) => {
         if (res.data.code == 1) {
           console.log(res.data);
+          this.getPersonal(this.id);
         } else {
           console.log(res.data);
         }
@@ -322,18 +355,41 @@ export default {
         }
       });
     },
-    getUserComment(id) {
-      this.axios
-        .get("http://localhost:8081/personalComment/" + id)
-        .then((res) => {
+    getUserComment(id,page,size) {
+      page = page ? page : this.pageNum;
+      size = size ? size : this.size;
+       getusercomment(id,page,size).then((res) => {
           if (res.data.code == 1) {
             console.log(res.data);
             this.userComment = res.data.data;
+            this.total = res.data.map.commentTotal
           } else {
             console.log(res.data);
           }
         });
     },
+    findSizeChange(size) {
+      console.log("当每页条数改变的时候" + size);
+      //将val赋值给size
+      this.size = size;
+      //重新去后台查询数据
+      this.getUserComment(this.id);
+    },
+    findPage() {
+      console.log(this.pageNum);
+      this.getUserComment(this.id,this.pageNum, this.size);
+    },
+
+    stateFormat(row, column, cellValue) {
+      // console.log(row , column , cellValue)
+      if (!cellValue) return "";
+      if (cellValue.length > 20) {
+        //最长固定显示4个字符
+        return cellValue.slice(0, 20) + "...";
+      }
+      return cellValue;
+    },
+
     getUserFollowPost(id) {
       this.axios
         .get("http://localhost:8081/followerPost/" + id)

@@ -36,3 +36,10 @@ export function list(pageNum,pageSize) {
       method: 'get',
     })
   }
+
+  export function getnoticelist(topic) {
+    return request({
+      url: '/munity/message/notice/detail/'+topic,
+      method: 'get',
+    })
+  }

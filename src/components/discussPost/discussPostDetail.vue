@@ -37,19 +37,13 @@
         </el-descriptions-item>
         <el-descriptions-item content-class-name="item-foot" span="2">
           <el-tooltip content="赞一下" placement="bottom" effect="light">
-            
-            <el-badge
-              :value="post.likeCount"
-              class="item"
-              type="primary"
-            >
-            <el-button
-              class="el-icon-arrow-up"
-              circle
-              @click="postLike(post.id, post.userId)"
-            >
-            </el-button
-            >
+            <el-badge :value="post.likeCount" class="item" type="primary">
+              <el-button
+                class="el-icon-arrow-up"
+                circle
+                @click="postLike(post.id, post.userId)"
+              >
+              </el-button>
             </el-badge>
           </el-tooltip>
           <el-divider direction="vertical"></el-divider>
@@ -59,14 +53,34 @@
             </el-badge>
           </el-tooltip>
           <el-divider direction="vertical"></el-divider>
-          <el-tooltip content="关注" placement="bottom" effect="light" v-if="followStatus!=false">
+          <el-tooltip
+            content="关注"
+            placement="bottom"
+            effect="light"
+            v-if="post.followStatus == false"
+          >
             <el-badge :value="post.followCount" class="item" type="primary">
-              <el-button class="el-icon-star-off" circle @click="toFollow(post.id)"> </el-button>
+              <el-button
+                class="el-icon-star-off"
+                circle
+                @click="toFollow(post.id)"
+              >
+              </el-button>
             </el-badge>
           </el-tooltip>
-          <el-tooltip content="取消关注" placement="bottom" effect="light" v-else>
+          <el-tooltip
+            content="取消关注"
+            placement="bottom"
+            effect="light"
+            v-else
+          >
             <el-badge :value="post.followCount" class="item" type="primary">
-              <el-button class="el-icon-star-on" circle @click="unFollow(post.id)"> </el-button>
+              <el-button
+                class="el-icon-star-on"
+                circle
+                @click="unFollow(post.id)"
+              >
+              </el-button>
             </el-badge>
           </el-tooltip>
         </el-descriptions-item>
@@ -150,8 +164,14 @@
             <el-badge
               :value="value.commentLikeCount"
               class="item"
-              type="primary">
-            <el-button class="el-icon-arrow-up" circle @click="commentLike(value.id, value.userId)"> </el-button>
+              type="primary"
+            >
+              <el-button
+                class="el-icon-arrow-up"
+                circle
+                @click="commentLike(value.id, value.userId)"
+              >
+              </el-button>
             </el-badge>
           </el-tooltip>
 
@@ -226,8 +246,13 @@
                 :value="value.commentLikeCount"
                 type="primary"
                 class="item"
-               >
-              <el-button class="el-icon-arrow-up" circle @click="commentLike(value.id,value.userId)"> </el-button>
+              >
+                <el-button
+                  class="el-icon-arrow-up"
+                  circle
+                  @click="commentLike(value.id, value.userId)"
+                >
+                </el-button>
               </el-badge>
             </el-tooltip>
             <el-tooltip content="发表回复" placement="top">
@@ -294,9 +319,7 @@ import {
   replyList,
 } from "@/api/home/discussPostDetail";
 import { addlike } from "@/api/home/like";
-import {
-  follow,unfollow
-} from "@/api/personal";
+import { follow, unfollow } from "@/api/personal";
 export default {
   name: "postDetail",
   data() {
@@ -340,20 +363,19 @@ export default {
         status: "",
         likeCount: "",
         likeSatus: "",
-        followCount:"",
-        followStatus:"",
+        followCount: "",
+        followStatus: "",
       },
 
-        followData:{
-        entityId:"",
-        entityType:"",
+      followData: {
+        entityId: "",
+        entityType: "",
       },
       like: {
         entityType: "",
         entityId: "",
         entityUserId: "",
       },
-
     };
   },
   created() {
@@ -506,7 +528,7 @@ export default {
       this.like.entityUserId = userId;
       addlike(this.like).then((res) => {
         if (res.data.code == 1) {
-          this.getDiscussPostDetail(id)
+          this.getDiscussPostDetail(id);
           console.log(res.data);
         } else {
           console.log(res.data);
@@ -520,20 +542,20 @@ export default {
       addlike(this.like).then((res) => {
         if (res.data.code == 1) {
           console.log(res.data);
-          this.DiscussPostComment(id,this.pageNum,this.size)
+          this.DiscussPostComment(id, this.pageNum, this.size);
         } else {
           console.log(res.data);
         }
       });
     },
-    toFollow(id){
-      this.followData.entityType = 1
-      this.followData.entityId = id
+    toFollow(id) {
+      this.followData.entityType = 1;
+      this.followData.entityId = id;
       follow(this.followData).then((res) => {
         if (res.data.code == 1) {
           console.log(res.data);
-          this.getDiscussPostDetail(id)
-          this.followStatus=false;
+          this.getDiscussPostDetail(id);
+          this.followStatus = true;
         } else {
           console.log(res.data);
         }
@@ -545,8 +567,8 @@ export default {
       unfollow(this.followData).then((res) => {
         if (res.data.code == 1) {
           console.log(res.data);
-          this.getDiscussPostDetail(id)
-          this.followStatus=true;
+          this.getDiscussPostDetail(id);
+          this.followStatus = false;
         } else {
           console.log(res.data);
         }

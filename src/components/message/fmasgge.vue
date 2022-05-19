@@ -3,7 +3,11 @@
     <el-tabs v-model="activeName" type="card" @tab-click="handleClick">
       <el-tab-pane name="first">
         <span slot="label"
-          >用户私信<el-badge class="mark" :max="99" :value="letterUnreadCount" v-if ="letterUnreadCount != 0"
+          >用户私信<el-badge
+            class="mark"
+            :max="99"
+            :value="letterUnreadCount"
+            v-if="letterUnreadCount != 0"
         /></span>
         <div>
           <el-button
@@ -120,10 +124,82 @@
       </el-tab-pane>
       <el-tab-pane>
         <span slot="label"
-          >系统提示<el-badge class="mark" :max="99" :value="noticeUnreadCount" v-if ="noticeUnreadCount != 0"
+          >系统通知<el-badge
+            class="mark"
+            :max="99"
+            :value="noticeUnreadCount"
+            v-if="noticeUnreadCount != 0"
         /></span>
-        
-        <el-empty :image-size="200"></el-empty>
+
+        <div>
+          <el-card class="list" v-for="value in noticeData" :key="value">
+            <el-descriptions
+              column="2"
+              :colon="false"
+              v-loading="loading"
+              element-loading-text="拼命加载中..."
+            >
+             <el-descriptions-item v-if="value.conversationId=== 'comment' ">
+               评论通知
+             </el-descriptions-item>
+              <el-descriptions-item v-if="value.conversationId==='like'">
+               点赞通知
+             </el-descriptions-item>
+              <el-descriptions-item v-if="value.conversationId==='follow'">
+               关注通知
+             </el-descriptions-item>
+            <el-descriptions-item>
+                <template slot="label">
+                  <i class="el-icon-time"></i>
+                  时间：
+                </template>
+                {{ dateFormat(value.createTime) }}
+              </el-descriptions-item>
+
+              <el-descriptions-item
+                :contenteditable="{ 'font-size': '30px' }"
+                :span="2"
+              >
+                <template slot="label">
+                  <i class="el-icon-document"></i>
+                  
+                </template>
+                <el-link
+                  class="none"
+                  :underline="false"
+                  @click="goToNotice(value.conversationId)"
+                >
+                  {{ value.content }}
+                </el-link>
+              </el-descriptions-item>
+          
+              <el-descriptions-item>
+                <i class="el-icon-chat-line-square"></i>未读通知数：{{
+                  value.letterUnreadCount
+                }}
+              </el-descriptions-item>
+
+              <el-descriptions-item>
+                <template slot="label">
+                  <i class="el-icon-chat-line-square"></i>
+                  总通知数：
+                </template>
+                {{ value.letterCount }}
+              </el-descriptions-item>
+            </el-descriptions>
+          </el-card>
+          <!-- <el-table :data="noticeData">
+            <el-table-column prop="content" :formatter="stateFormat"> </el-table-column>
+            <el-table-column
+              ><template slot-scope="scope">
+                <i class="el-icon-time"></i>
+                <span style="margin-left: 10px">{{
+                  date(scope.row.createTime)
+                }}</span>
+              </template>
+            </el-table-column>
+          </el-table> -->
+        </div>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -144,7 +220,8 @@ export default {
       letterUnreadCount: "",
       noticeUnreadCount: "",
       messageData: [],
-      dialogVisible:false,
+      noticeData: [],
+      dialogVisible: false,
       form: {
         toName: "",
         content: "",
@@ -153,6 +230,7 @@ export default {
   },
   mounted() {
     this.findAll(this.page, this.size);
+    this.getNotice();
   },
   methods: {
     dateFormat: function (time) {
@@ -218,9 +296,30 @@ export default {
       console.log(this.pageNum);
       this.findAll(this.pageNum, this.size);
     },
+    getNotice() {
+      this.axios
+        .get("http://localhost:8081/munity/message/notice/list/")
+        .then((res) => {
+          if (res.data.code == 1) {
+            console.log(res.data);
+            this.noticeData = res.data.data;
+          } else {
+            console.log(res.data);
+          }
+        });
+    },
+
     goTo(arg) {
       this.$router.push({
         path: "/messageDetail",
+        query: {
+          conversationId: arg,
+        },
+      });
+    },
+    goToNotice(arg) {
+      this.$router.push({
+        path: "/noticeDetail",
         query: {
           conversationId: arg,
         },

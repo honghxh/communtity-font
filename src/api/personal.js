@@ -33,3 +33,14 @@ export function personData(id) {
       method: 'get',
     })
   }
+  export function getusercomment (userId,pageNum,pageSize) {
+    return request({
+      url: '/personalComment',
+      method: 'get',
+      params: {
+        userId,
+        pageNum,
+        pageSize
+      },
+    })
+  }

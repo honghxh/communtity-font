@@ -12,7 +12,7 @@ const routes = [
     redirect: '/homePage',
     children:[
       {path: '/fmasgge',component: () => import('../components/message/fmasgge.vue')},
-      {path: '/smasgge',component: () => import('../components/message/smasgge.vue')},
+      {path: '/noticeDetail',component: () => import('../components/message/noticeDetail.vue')},
       {path: '/homepage',component: () => import('../components/HomePage.vue')},
       {path: '/personalHome',component: () => import('../components/personal/personalHome.vue')},
       {path: '/discussPostDeatil', component: ()=> import ('../components/discussPost/discussPostDetail.vue')},
